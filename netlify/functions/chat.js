@@ -108,16 +108,12 @@ exports.handler = async (event) => {
         return { statusCode: 400, headers, body: JSON.stringify({ error: 'Não é possível enviar mensagem para si mesmo' }) }
       }
 
-      // Verifica se receiver existe
+      // Busca nome do receiver se existir na tabela users (opcional)
       const { data: receiver } = await supabase
         .from('users')
         .select('user_code, author_name, display_name')
         .eq('user_code', receiver_code)
         .maybeSingle()
-
-      if (!receiver) {
-        return { statusCode: 404, headers, body: JSON.stringify({ error: 'Código não encontrado. Verifique e tente novamente.' }) }
-      }
 
       const { data: message, error } = await supabase
         .from('chat_messages')
@@ -133,7 +129,7 @@ exports.handler = async (event) => {
 
       if (error) throw error
 
-      return { statusCode: 201, headers, body: JSON.stringify({ message, receiver }) }
+      return { statusCode: 201, headers, body: JSON.stringify({ message, receiver: receiver || null }) }
     }
 
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'Método não permitido' }) }
